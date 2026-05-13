@@ -55,7 +55,7 @@ if (result.isSuccess()) {
     System.err.println("定位失败: " + result.getMessage());
 }
 ```
-### sprinboot 集成
+### springboot 集成
 ```java
 package com.ruoyi.gateway;
 
