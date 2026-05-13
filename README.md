@@ -114,8 +114,8 @@ public AjaxResult openInIdea(@RequestBody Map<String, String> payload) {
 | `ideaDir` | IDEA 可执行文件所在目录 | Windows 必填，macOS/Linux 可留空 |
 | `ideaName` | IDEA 可执行文件名 | Windows: `idea64.exe`，macOS: `idea`，Linux: `idea.sh` |
 
-
-
+## 联系方式
+QQ群：1172212917
 ## 许可证
 
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
