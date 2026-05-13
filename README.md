@@ -72,7 +72,7 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class OpenInIdeGatewayController {
+public class OpenInIdeController {
 @PostMapping("/__open_in_idea")
 public AjaxResult openInIdea(@RequestBody Map<String, String> payload) {
     String requestUrl = payload.get("requestUrl");
