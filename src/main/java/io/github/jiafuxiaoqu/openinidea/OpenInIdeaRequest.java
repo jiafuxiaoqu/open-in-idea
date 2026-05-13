@@ -70,9 +70,15 @@ public class OpenInIdeaRequest {
     // ---------- 校验 ----------
 
     void validate() {
-        if (blank(requestUrl)) throw new IllegalArgumentException("requestUrl 不能为空");
-        if (blank(method))     throw new IllegalArgumentException("method 不能为空");
-        if (blank(ideaName))   throw new IllegalArgumentException("ideaName 不能为空");
+        if (blank(requestUrl)) {
+            throw new IllegalArgumentException("requestUrl 不能为空");
+        }
+        if (blank(method)) {
+            throw new IllegalArgumentException("method 不能为空");
+        }
+        if (blank(ideaName)) {
+            throw new IllegalArgumentException("ideaName 不能为空");
+        }
     }
 
     private static boolean blank(String s) {
