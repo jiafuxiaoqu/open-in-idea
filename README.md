@@ -29,32 +29,13 @@
 <dependency>
     <groupId>io.github.jiafuxiaoqu</groupId>
     <artifactId>open-in-idea</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 
 ## 快速开始
 
-### 基本用法
-
-```java
-import io.github.jiafuxiaoqu.openinidea.*;
-
-OpenInIdeaResult result = OpenInIdeaService.getInstance().open(
-    new OpenInIdeaRequest()
-        .requestUrl("http://localhost/dev-api/system/user/list")
-        .method("GET")
-        .ideaDir("C:/Program Files/JetBrains/IntelliJ IDEA 2024.1/bin")
-        .ideaName("idea64.exe")
-);
-
-if (result.isSuccess()) {
-    System.out.println("定位成功: " + result.getMessage());
-} else {
-    System.err.println("定位失败: " + result.getMessage());
-}
-```
 ### springboot 集成
 ```java
 package com.ruoyi.gateway;

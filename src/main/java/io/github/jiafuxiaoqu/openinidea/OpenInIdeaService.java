@@ -217,22 +217,71 @@ public class OpenInIdeaService {
     }
 
     private String findBestMatch(String requestPath) {
-        Map.Entry<String, String> best      = null;
-        int                       bestScore = Integer.MIN_VALUE;
+        List<String> candidates = generateCandidatePaths(requestPath);
 
-        for (Map.Entry<String, String> entry : cache.entrySet()) {
-            int score = matchScore(normalizePath(entry.getKey()), requestPath);
-            if (score > bestScore) {
-                bestScore = score;
-                best      = entry;
+        for (String candidate : candidates) {
+            candidate = normalizePath(candidate);
+
+            String exact = cache.get(candidate);
+            if (exact != null) {
+                log("Matched [" + candidate + "] for [" + requestPath + "]");
+                return exact;
+            }
+
+            for (Map.Entry<String, String> entry : cache.entrySet()) {
+                String mappingPath = normalizePath(entry.getKey());
+                if (antMatch(mappingPath, candidate)) {
+                    log("Matched [" + mappingPath + "] for [" + requestPath + "]");
+                    return entry.getValue();
+                }
             }
         }
 
-        if (best != null) {
-            log("Matched [" + normalizePath(best.getKey()) + "] for [" + requestPath + "]");
-            return best.getValue();
-        }
         return null;
+    }
+    /**
+     * 生成多个候选路径，用于兼容 gateway 前缀
+     *
+     * 例如：
+     * /prod-api/system/config/configKey/aaa
+     *
+     * 生成：
+     * /prod-api/system/config/configKey/aaa
+     * /system/config/configKey/aaa
+     * /config/configKey/aaa
+     * /configKey/aaa
+     */
+    private List<String> generateCandidatePaths(String path) {
+
+        path = normalizePath(path);
+
+        List<String> list = new java.util.ArrayList<>();
+
+        list.add(path);
+
+        String[] arr = path.split("/");
+
+        for (int i = 1; i < arr.length; i++) {
+
+            StringBuilder sb = new StringBuilder();
+
+            for (int j = i; j < arr.length; j++) {
+
+                if (arr[j] == null || arr[j].isEmpty()) {
+                    continue;
+                }
+
+                sb.append("/").append(arr[j]);
+            }
+
+            String candidate = sb.toString();
+
+            if (!candidate.isEmpty()) {
+                list.add(candidate);
+            }
+        }
+
+        return list;
     }
 
     // -------------------------------------------------------------------------
@@ -295,40 +344,39 @@ public class OpenInIdeaService {
     // 路径匹配
     // -------------------------------------------------------------------------
 
-    private int matchScore(String mappingPath, String requestPath) {
-        if (mappingPath.equals(requestPath))
-            return 100000 + specificityScore(mappingPath);
-        if (requestPath.endsWith(mappingPath))
-            return 90000  + specificityScore(mappingPath);
-        if (antMatch(mappingPath, requestPath))
-            return 80000  + specificityScore(mappingPath);
-        if (antMatch("/**" + mappingPath, requestPath))
-            return 70000  + specificityScore(mappingPath);
-        return Integer.MIN_VALUE;
-    }
-
-    /** 字面字符越多越具体，路径变量和通配符扣分 */
-    private int specificityScore(String path) {
-        int score = 0; boolean inVar = false;
-        for (char c : path.toCharArray()) {
-            if      (c == '{') { inVar = true;  score -= 100; }
-            else if (c == '}') { inVar = false; }
-            else if (c == '*') { score -= 200; }
-            else if (!inVar)   { score += 10;  }
-        }
-        return score;
-    }
-
     /**
      * 简易 Ant 风格路径匹配（不依赖 Spring）。
      * 支持 {@code *}（单段）和 {@code **}（多段）。
      */
     private boolean antMatch(String pattern, String path) {
-        // 转成正则
-        String regex = Pattern.quote(pattern)
-                .replace("\\*\\*", "\\E.*\\Q")
-                .replace("\\*",    "\\E[^/]*\\Q");
-        return path.matches(regex);
+        pattern = normalizePath(pattern);
+        path = normalizePath(path);
+
+        StringBuilder regex = new StringBuilder("^");
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if (c == '{') {
+                int end = pattern.indexOf('}', i);
+                if (end == -1) {
+                    regex.append(Pattern.quote(String.valueOf(c)));
+                } else {
+                    regex.append("[^/]+");
+                    i = end;
+                }
+            } else if (c == '*') {
+                if (i + 1 < pattern.length() && pattern.charAt(i + 1) == '*') {
+                    regex.append(".*");
+                    i++;
+                } else {
+                    regex.append("[^/]*");
+                }
+            } else {
+                regex.append(Pattern.quote(String.valueOf(c)));
+            }
+        }
+        regex.append("$");
+
+        return path.matches(regex.toString());
     }
 
     // -------------------------------------------------------------------------
@@ -336,7 +384,7 @@ public class OpenInIdeaService {
     // -------------------------------------------------------------------------
 
     private ProcessBuilder buildCommand(String ideaDir, String ideaName,
-                                         String filePath, int lineNo) {
+                                        String filePath, int lineNo) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
             String cmd = String.format(
