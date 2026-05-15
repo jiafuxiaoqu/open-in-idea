@@ -5,7 +5,7 @@
 纯 Java 库，无 Spring 或任何框架依赖，适用于所有基于注解的 Spring MVC 项目。
 
 ## 功能特性
-- **配合使用Chrome 扩展：https://github.com/jiafuxiaoqu/spring-boot-open-in-ide-extension
+- **配合使用Chrome 扩展**：https://github.com/jiafuxiaoqu/spring-boot-open-in-ide-extension
 - **URL 到源码自动定位**：输入 HTTP 请求 URL，自动扫描源码找到对应的 Controller 方法和行号
 - **IDEA 一键打开**：直接在 IDEA 中打开匹配的源码文件并跳转到对应行
 - **Ant 风格路径匹配**：支持 `{变量}` 和 `**` 通配符等 Ant 风格路径
